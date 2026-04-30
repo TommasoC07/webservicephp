@@ -25,23 +25,34 @@ if($metodo =='GET') {
                 categoria.id WHERE categoria.nome = ?";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$cat_name]);
- //con stats1 conta quante spese sono state fatte per categoria       
-    }elseif(isset($_GET['stats1']) ){
-        $sql = "SELECT categoria.nome, COUNT(*) AS numero_spese FROM spesa INNER JOIN categoria ON spesa.cat_id = 
+ // conta quante spese sono state fatte per categoria       
+    }elseif(isset($_GET['stats']) ){
+        switch($_GET['stats']){
+            
+        case 'conteggio': $sql = "SELECT categoria.nome, COUNT(*) AS numero_spese FROM spesa INNER JOIN categoria ON spesa.cat_id = 
                 categoria.id GROUP BY categoria.nome";
-        $stmt= $pdo->query($sql);
+                $stmt= $pdo->query($sql);
+                break;
 
-        //con stats2 somma tutte le spese fatte per categoria
-    }elseif(isset($_GET['stats2'])){
-        $sql = "SELECT categoria.nome, SUM(importo) AS spesa_totale FROM spesa INNER JOIN categoria ON spesa.cat_id = 
+        //somma tutte le spese fatte per categoria
+    
+        case 'somma': $sql = "SELECT categoria.nome, SUM(importo) AS spesa_totale FROM spesa INNER JOIN categoria ON spesa.cat_id = 
                 categoria.id GROUP BY categoria.nome";
         $stmt = $pdo->query($sql);
+        break;
         
-         //con stats3 mostra la media di tutte le spese fatte per categoria
-    }elseif(isset($_GET['stats3'])){
-        $sql = "SELECT AVG(importo) AS media_spese FROM spesa";
+         //mostra la media di tutte le spese fatte per categoria
+    case 'media': $sql = "SELECT categoria.nome, AVG(importo) AS media_spese FROM spesa INNER JOIN categoria ON spesa.cat_id = 
+                categoria.id GROUP BY categoria.nome ";
         $stmt = $pdo->query($sql);
-        
+        break;
+        //calcola tutto
+    case 'all': $sql = "SELECT AVG(importo) AS media_spese, SUM(importo) AS totale_spese, COUNT(*) AS spese_totali FROM spesa ";
+                $stmt = $pdo->query($sql);
+        break;
+    default: echo json_encode(["errore" => "Nessun filtro selezionato"]);
+    exit;
+    }
     } else {
         //Se nell'url non viene indicato il filtro, il risultato sarà composto da tutte le spese
         $sql = "SELECT spesa.*, categoria.nome FROM spesa
@@ -57,7 +68,7 @@ if ($metodo == 'POST') {
     $input = file_get_contents("php://input");
     $dati=json_decode($input, true);
     
-    if(isset($dati['tipo'])){
+    if(isset($dati['tipo']) && $dati['tipo']=='spesa'){
     //controllo sui campi: se sono vuoti si annulla l'operazione
     if (!empty($dati['titolo'])&& !empty($dati['importo']) && !empty($dati['cat_id'])) {
         $sql = "INSERT INTO spesa (titolo, importo, cat_id) VALUES (?, ?, ?)";
@@ -68,13 +79,15 @@ if ($metodo == 'POST') {
     } else {
         echo json_encode(["errore" => "Dati mancanti per l'inserimento"]);
     }
-    }else{
+    }elseif(isset($dati['tipo']) && $dati['tipo']=='categoria'){
         if(!empty($dati['nome'])) {
         $sql = "INSERT INTO categoria(nome) VALUES (?)";
         $stmt = $pdo->prepare($sql);
         $stmt->execute([$dati['nome'] ]);
         echo json_encode(["messaggio" => "Categoria inserita con successo"]);
     }
+ }else{
+      echo json_encode(["errore" => "Nessun tipo selezionato"]);
  }
 }
 
@@ -113,6 +126,5 @@ if($metodo == 'DELETE') {
 // Se il metodo non è nessuno di questi, viene mostrato un errore
 if ($metodo != 'GET' && $metodo != 'POST' && $metodo != 'DELETE') {
     echo json_encode(["errore" => "Metodo non supportato"]);
-}
+}//i commenti nel codice che ho scritto li ho inseriti io
 ?>
-
