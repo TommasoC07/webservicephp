@@ -1,7 +1,0 @@
-CREATE DATABASE gestione_spese;
-USE gestione_spese
-
-CREATE TABLE categoria (id int(11) PRIMARY KEY AUTO_INCREMENT, nome VARCHAR(45) NOT NULL UNIQUE);
-
-CREATE TABLE spesa (id int(11) PRIMARY KEY AUTO_INCREMENT, titolo VARCHAR(40) NOT NULL, importo DECIMAL (10,2) NOT NULL, cat_id INT, data_creazione TIMESTAMP DEFAULT CURRENT_TIMESTAMP, FOREIGN KEY (cat_id) REFERENCES categoria(id) ON UPDATE cascade ON DELETE cascade);
-
