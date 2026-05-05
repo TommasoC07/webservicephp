@@ -50,6 +50,9 @@ if($metodo =='GET') {
     case 'all': $sql = "SELECT AVG(importo) AS media_spese, SUM(importo) AS totale_spese, COUNT(*) AS spese_totali FROM spesa ";
                 $stmt = $pdo->query($sql);
         break;
+            case 'data': $sql = "SELECT * FROM spesa ORDER BY data_creazione";
+            $stmt = $pdo->query($sql);
+            break;
     default: echo json_encode(["errore" => "Nessun filtro selezionato"]);
     exit;
     }
